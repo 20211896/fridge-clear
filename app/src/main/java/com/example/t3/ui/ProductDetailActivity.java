@@ -3,18 +3,15 @@ package com.example.t3.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
-import com.example.t3.utils.CustomToast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.bumptech.glide.Glide;
-import com.example.t3.R;
 import com.example.t3.data.ProductImageManager;
 import com.example.t3.databinding.ActivityProductDetailBinding;
 import com.example.t3.manager.BasketManager;
 import com.example.t3.model.BasketItem;
 import com.example.t3.model.KamisProduct;
+import com.example.t3.utils.CustomToast;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -45,7 +42,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         binding = ActivityProductDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // BasketManager 사용하되, 브로드캐스트로 ViewModel에 알림
+        // BasketManager 초기화
         basketManager = BasketManager.getInstance(this);
 
         // Intent로부터 상품 정보 받기
@@ -67,7 +64,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         product.setCategoryName(intent.getStringExtra("product_category"));
         product.setImageUrl(intent.getStringExtra("product_image"));
 
-        // 이미지 URL이 없으면 ProductImageManager에서 가져오기
+        // 이미지 URL이 없으면 ProductImageManager에서 가져오기 (장바구니용)
         if (product.getImageUrl() == null || product.getImageUrl().isEmpty()) {
             String imageUrl = ProductImageManager.getImageUrl(
                     product.getItemName(),
@@ -76,7 +73,6 @@ public class ProductDetailActivity extends AppCompatActivity {
             product.setImageUrl(imageUrl);
         }
     }
-
 
     private void setupUI() {
         if (product == null) return;
@@ -100,24 +96,8 @@ public class ProductDetailActivity extends AppCompatActivity {
         // 초기 수량과 총 가격 설정
         updateQuantityAndPrice();
 
-        // 상품 이미지 로드 (있다면)
-        loadProductImage();
-    }
-
-    private void loadProductImage() {
-        if (product.getImageUrl() != null && !product.getImageUrl().isEmpty()) {
-            // 만약 activity_product_detail.xml에 ImageView가 있다면
-            // ImageView를 추가하고 여기서 로드
-            // 현재 레이아웃에는 이미지뷰가 없으므로 주석 처리
-            /*
-            Glide.with(this)
-                .load(product.getImageUrl())
-                .placeholder(R.drawable.ic_menu_gallery)
-                .error(R.drawable.ic_menu_gallery)
-                .centerCrop()
-                .into(binding.imgProduct);
-            */
-        }
+        // 🎯 이미지 로딩 제거 (레이아웃에 ImageView가 없으므로)
+        // loadProductImage(); // 주석 처리
     }
 
     private void setCategoryBadgeColor(String category) {
@@ -151,7 +131,7 @@ public class ProductDetailActivity extends AppCompatActivity {
     }
 
     private String getProductDescription(String itemName, String kindName) {
-        // 상품별 설명 생성 (기존 코드와 동일)
+        // 상품별 설명 생성
         switch (itemName) {
             case "사과":
                 return "신선하고 아삭한 " + (kindName != null ? kindName : "") + " 사과입니다. " +
@@ -212,9 +192,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         });
 
         // 장바구니 추가 버튼
-        binding.btnAddToCart.setOnClickListener(v -> {
-            addToCart();
-        });
+        binding.btnAddToCart.setOnClickListener(v -> addToCart());
     }
 
     private void updateQuantityAndPrice() {
@@ -227,19 +205,22 @@ public class ProductDetailActivity extends AppCompatActivity {
         binding.txtTotalPrice.setText("총 " + fmt.format((int)totalPrice) + "원");
     }
 
+    /**
+     * 🎯 이미지 URL을 포함한 장바구니 추가 (이미지는 장바구니에서만 표시)
+     */
     private void addToCart() {
-        // MarketFragment와 동일한 로직으로 BasketItem 생성
+        // BasketItem 생성 (이미지 URL 포함 - 장바구니에서 사용)
         String id = String.valueOf(System.currentTimeMillis());
         String name = product.getFullName();
-        int unitPrice = (int)Math.round(product.getPriceAsDouble());
-        String imageUrl = product.getImageUrl();
+        int unitPrice = (int) Math.round(product.getPriceAsDouble());
+        String imageUrl = product.getImageUrl(); // 🎯 이미지 URL은 여전히 포함 (장바구니용)
 
         BasketItem basketItem = new BasketItem(id, name, unitPrice, quantity, imageUrl);
 
         // BasketManager에 추가
         basketManager.addMyBasketItem(basketItem);
 
-        // 성공 메시지 표시 (MarketFragment와 동일한 형식)
+        // 상세한 성공 메시지 표시
         NumberFormat fmt = NumberFormat.getNumberInstance(Locale.KOREA);
         CustomToast.show(this,
                 "🛒 " + name + "\n" +

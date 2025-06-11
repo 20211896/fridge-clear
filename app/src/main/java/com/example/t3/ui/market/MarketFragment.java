@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.t3.R;
 import com.example.t3.adapter.KamisProductAdapter;
 import com.example.t3.databinding.FragmentMarketBinding;
+import com.example.t3.manager.BasketManager;
 import com.example.t3.model.BasketItem;
 import com.example.t3.model.KamisProduct;
 import com.example.t3.ui.basket.BasketViewModel;
@@ -34,6 +35,7 @@ public class MarketFragment extends Fragment implements KamisProductAdapter.OnKa
     private FragmentMarketBinding binding;
     private MarketViewModel marketViewModel;
     private BasketViewModel basketViewModel;
+    private BasketManager basketManager; // 🎯 BasketManager 추가
     private KamisProductAdapter adapter;
 
     @Override
@@ -45,6 +47,9 @@ public class MarketFragment extends Fragment implements KamisProductAdapter.OnKa
         marketViewModel = new ViewModelProvider(this).get(MarketViewModel.class);
         // Activity 스코프로 공유되는 BasketViewModel
         basketViewModel = new ViewModelProvider(requireActivity()).get(BasketViewModel.class);
+
+        // 🎯 BasketManager 초기화
+        basketManager = BasketManager.getInstance(requireContext());
 
         setupRecyclerView();
         setupSearchView();
@@ -153,7 +158,7 @@ public class MarketFragment extends Fragment implements KamisProductAdapter.OnKa
         showQuantityDialog(product);
     }
 
-    /** 6) 수량 선택 다이얼로그 & BasketViewModel에 추가 **/
+    /** 6) 🎯 수량 선택 다이얼로그 & 이미지 URL 포함한 장바구니 추가 **/
     private void showQuantityDialog(KamisProduct product) {
         View dialogView = LayoutInflater.from(getContext())
                 .inflate(R.layout.dialog_quantity_selector, null);
@@ -172,6 +177,7 @@ public class MarketFragment extends Fragment implements KamisProductAdapter.OnKa
 
         final int[] qty = {1};
         NumberFormat fmt = NumberFormat.getNumberInstance(Locale.KOREA);
+
         Runnable updateTotal = () -> {
             txtQty.setText(String.valueOf(qty[0]));
             txtTotal.setText("총 " +
@@ -192,16 +198,29 @@ public class MarketFragment extends Fragment implements KamisProductAdapter.OnKa
                 .create();
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
-        btnAdd.setOnClickListener(v -> {
-            // BasketItem 생성 후 ViewModel에 추가
-            String id   = String.valueOf(System.currentTimeMillis());
-            String name = product.getFullName();
-            int    unit = (int)Math.round(product.getPriceAsDouble());
-            BasketItem item = new BasketItem(id, name, unit, qty[0], /** imageUrl= **/ "");
-            basketViewModel.addItem(item);
 
-            // 커스텀 토스트로 변경 - 간결한 메시지
-            CustomToast.show(getContext(), name + " " + qty[0] + "개 장바구니 추가");
+        btnAdd.setOnClickListener(v -> {
+            // 🎯 이미지 URL을 포함한 BasketItem 생성
+            String id = String.valueOf(System.currentTimeMillis());
+            String name = product.getFullName();
+            int unitPrice = (int) Math.round(product.getPriceAsDouble());
+            String imageUrl = product.getImageUrl(); // 상품의 이미지 URL 가져오기
+
+            BasketItem basketItem = new BasketItem(id, name, unitPrice, qty[0], imageUrl);
+
+            // BasketManager에 추가
+            basketManager.addMyBasketItem(basketItem);
+
+            // 🎯 ViewModel도 업데이트 (실시간 반영)
+            basketViewModel.refreshItems();
+
+            // 상세한 성공 메시지 표시
+            CustomToast.show(getContext(),
+                    "🛒 " + name + "\n" +
+                            "수량: " + qty[0] + "개\n" +
+                            "가격: " + fmt.format(unitPrice * qty[0]) + "원\n" +
+                            "장바구니에 추가되었습니다!");
+
             dialog.dismiss();
         });
 

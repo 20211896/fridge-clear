@@ -15,6 +15,8 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.t3.R;
 import com.example.t3.model.BasketItem;
 
@@ -76,14 +78,12 @@ public class BasketItemView extends LinearLayout {
         // 삭제 버튼
         btnDelete.setOnClickListener(v -> {
             if (callback != null) callback.onItemRemoved(basketItem);
-            // 뷰 자체 제거는 ViewModel 변경 후 Fragment에서 다시 그려지므로 생략
         });
 
-        // 롱클릭 시 드래그 시작 (수정된 부분)
+        // 롱클릭 시 드래그 시작
         this.setOnLongClickListener(v -> {
             ClipData data = ClipData.newPlainText("basket_item", basketItem.getId());
             DragShadowBuilder shadow = new DragShadowBuilder(v);
-            // 중요: this(현재 BasketItemView)를 localState로 전달
             v.startDragAndDrop(data, shadow, this, 0);
             return true;
         });
@@ -91,14 +91,13 @@ public class BasketItemView extends LinearLayout {
 
     /**
      * Fragment에서 전달하는 콜백
-     * (삭제·수량 변경 시 ViewModel 호출)
      */
     public void setParentCallback(BasketFragment.ParentCallback callback) {
         this.callback = callback;
     }
 
     /**
-     * BasketItem 데이터를 뷰에 바인딩
+     * BasketItem 데이터를 뷰에 바인딩 (이미지 로딩 추가)
      */
     public void bind(BasketItem item) {
         this.basketItem = item;
@@ -106,6 +105,33 @@ public class BasketItemView extends LinearLayout {
         textName.setText(item.getProductName());
         textQuantity.setText(String.valueOf(item.getQuantity()));
         textPrice.setText(item.getFormattedPrice());
+
+        // 🎯 상품 이미지 로딩 추가
+        loadProductImage(item.getImageUrl());
+    }
+
+    /**
+     * 상품 이미지 로딩
+     */
+    private void loadProductImage(String imageUrl) {
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            // Unsplash 이미지 로딩
+            Glide.with(getContext())
+                    .load(imageUrl)
+                    .apply(new RequestOptions()
+                            .placeholder(R.drawable.ic_menu_gallery)
+                            .error(R.drawable.ic_menu_gallery)
+                            .centerCrop())
+                    .into(imageProduct);
+
+            // 배경색 제거 (이미지가 있을 때)
+            imageProduct.setBackgroundColor(0x00000000);
+        } else {
+            // 이미지가 없으면 기본 아이콘과 회색 배경
+            imageProduct.setImageResource(R.drawable.ic_menu_gallery);
+            imageProduct.setBackgroundColor(0xFF9E9E9E);
+            imageProduct.setScaleType(ImageView.ScaleType.CENTER);
+        }
     }
 
     /**

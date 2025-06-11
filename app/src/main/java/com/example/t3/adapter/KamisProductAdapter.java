@@ -11,13 +11,18 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.t3.R;
+import com.example.t3.manager.BasketManager;
+import com.example.t3.model.BasketItem;
 import com.example.t3.model.KamisProduct;
-import com.example.t3.ui.ProductDetailActivity; // 추가 ⭐
-import com.example.t3.utils.CustomToast;        // 변경된 임포트
+import com.example.t3.ui.ProductDetailActivity;
+import com.example.t3.utils.CustomToast;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class KamisProductAdapter extends RecyclerView.Adapter<KamisProductAdapter.KamisProductViewHolder> {
 
@@ -87,52 +92,92 @@ public class KamisProductAdapter extends RecyclerView.Adapter<KamisProductAdapte
                 ProductDetailActivity.start(itemView.getContext(), product);
             });
 
-            // 장바구니 추가 버튼 클릭
+            // 🎯 장바구니 추가 버튼 클릭 (이미지 URL 포함)
             btnAddCart.setOnClickListener(v -> {
                 if (listener != null) {
+                    // Fragment에서 처리하는 경우
                     listener.onAddToCartClick(product);
                 } else {
-                    CustomToast.show(itemView.getContext(),
-                            product.getFullName() + " 장바구니에 추가!");
+                    // 기본 장바구니 추가 처리 (이미지 URL 포함)
+                    addToCartWithImage(product);
                 }
             });
         }
 
+        /**
+         * 🎯 이미지 URL을 포함한 장바구니 추가 처리
+         */
+        private void addToCartWithImage(KamisProduct product) {
+            // BasketManager를 통해 장바구니에 추가
+            BasketManager basketManager = BasketManager.getInstance(itemView.getContext());
+
+            // BasketItem 생성 (이미지 URL 포함)
+            String id = String.valueOf(System.currentTimeMillis());
+            String name = product.getFullName();
+            int unitPrice = (int) Math.round(product.getPriceAsDouble());
+            int quantity = 1;
+            String imageUrl = product.getImageUrl(); // 🎯 상품의 이미지 URL 포함
+
+            BasketItem basketItem = new BasketItem(id, name, unitPrice, quantity, imageUrl);
+            basketManager.addMyBasketItem(basketItem);
+
+            // 성공 메시지 표시 (상세한 정보 포함)
+            NumberFormat fmt = NumberFormat.getNumberInstance(Locale.KOREA);
+            CustomToast.show(itemView.getContext(),
+                    "🛒 " + product.getFullName() + "\n" +
+                            "수량: " + quantity + "개\n" +
+                            "가격: " + fmt.format(unitPrice) + "원\n" +
+                            "장바구니에 추가되었습니다!");
+        }
+
+        /**
+         * 상품 이미지 로딩 (개선된 버전)
+         */
         private void loadProductImage(KamisProduct product) {
             if (product.getImageUrl() != null && !product.getImageUrl().isEmpty()) {
+                // Unsplash 이미지 로딩
                 Glide.with(itemView.getContext())
                         .load(product.getImageUrl())
-                        .placeholder(R.drawable.ic_menu_gallery)
-                        .error(R.drawable.ic_menu_gallery)
-                        .centerCrop()
+                        .apply(new RequestOptions()
+                                .placeholder(R.drawable.ic_menu_gallery)
+                                .error(R.drawable.ic_menu_gallery)
+                                .centerCrop())
                         .into(imgCategory);
+
+                // 이미지가 있을 때는 배경색 제거
                 imgCategory.setBackgroundColor(0x00000000);
             } else {
+                // 이미지가 없으면 카테고리별 색상 배경 표시
                 setCategoryIcon(product.getCategoryName());
             }
         }
 
+        /**
+         * 카테고리별 아이콘과 배경색 설정
+         */
         private void setCategoryIcon(String category) {
             switch (category) {
                 case "식량작물":
-                    imgCategory.setBackgroundColor(0xFFFFEB3B);
+                    imgCategory.setBackgroundColor(0xFFFFEB3B); // 노란색
                     break;
                 case "채소류":
-                    imgCategory.setBackgroundColor(0xFF4CAF50);
+                    imgCategory.setBackgroundColor(0xFF4CAF50); // 초록색
                     break;
                 case "과일류":
-                    imgCategory.setBackgroundColor(0xFFFF9800);
+                    imgCategory.setBackgroundColor(0xFFFF9800); // 주황색
                     break;
                 case "축산물":
-                    imgCategory.setBackgroundColor(0xFFF44336);
+                    imgCategory.setBackgroundColor(0xFFF44336); // 빨간색
                     break;
                 case "수산물":
-                    imgCategory.setBackgroundColor(0xFF2196F3);
+                    imgCategory.setBackgroundColor(0xFF2196F3); // 파란색
                     break;
                 default:
-                    imgCategory.setBackgroundColor(0xFF9E9E9E);
+                    imgCategory.setBackgroundColor(0xFF9E9E9E); // 회색
                     break;
             }
+
+            // 기본 아이콘 설정
             imgCategory.setImageResource(R.drawable.ic_menu_gallery);
             imgCategory.setScaleType(ImageView.ScaleType.CENTER);
         }
