@@ -48,17 +48,17 @@ dependencies {
     // 네트워크/이미지 라이브러리
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.github.bumptech.glide:glide:4.15.1")
 
     // JSON 직렬화를 위한 GSON 추가
     implementation("com.google.code.gson:gson:2.8.6")
 
-    // 카카오 로그인 SDK - 단계별 추가
-    implementation("com.kakao.sdk:v2-user:2.20.1")
-    implementation("com.kakao.sdk:v2-auth:2.20.1")
+    // 카카오 로그인 SDK - 안정 버전으로 다운그레이드
+    implementation("com.kakao.sdk:v2-user:2.19.0")
+    implementation("com.kakao.sdk:v2-auth:2.19.0")
 
-    // 이미지 로딩을 위한 Glide
+    // 이미지 로딩을 위한 Glide (중복 제거)
     implementation("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
 
     // 원형 이미지뷰
     implementation("de.hdodenhof:circleimageview:3.1.0")

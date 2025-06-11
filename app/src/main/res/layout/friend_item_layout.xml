@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:gravity="center_vertical"
+    android:background="?android:attr/selectableItemBackground">
+
+    <!-- 상태 표시 점 -->
+    <View
+        android:id="@+id/view_status_dot"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:background="@drawable/circle_background"
+        android:backgroundTint="#666666"
+        android:layout_marginEnd="12dp" />
+
+    <!-- 친구 정보 -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/text_friend_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="친구 이름"
+            android:textSize="16sp"
+            android:textColor="#333333"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/text_friend_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="오프라인"
+            android:textSize="13sp"
+            android:textColor="#666666"
+            android:layout_marginTop="2dp" />
+
+    </LinearLayout>
+
+    <!-- 연결 해제 버튼 -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_disconnect"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:text="해제"
+        android:textSize="16sp"
+        android:textColor="#FF3B30"
+        android:background="@drawable/button_outline_red"
+        android:paddingHorizontal="16dp" />
+
+</LinearLayout>

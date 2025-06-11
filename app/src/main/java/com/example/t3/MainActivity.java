@@ -1,9 +1,11 @@
 package com.example.t3;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -22,6 +24,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.t3.databinding.ActivityMainBinding;
+import com.example.t3.manager.KakaoUserManager;
+import com.example.t3.ui.MyPageActivity;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity {
@@ -34,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView userName;
     private TextView userEmail;
 
+    // 카카오 사용자 매니저
+    private KakaoUserManager kakaoUserManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.appBarMain.toolbar);
+
+        // 카카오 사용자 매니저 초기화
+        kakaoUserManager = KakaoUserManager.getInstance(this);
 
         // FAB 클릭 리스너
         binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
@@ -83,22 +93,73 @@ public class MainActivity extends AppCompatActivity {
         // 헤더의 뷰들 초기화
         profileImage = headerView.findViewById(R.id.profile_image);
         userName = headerView.findViewById(R.id.user_name);
+        // userEmail = headerView.findViewById(R.id.user_email); // 필요시 추가
 
-        // 카카오 사용자 정보 로드
-        loadKakaoUserInfo();
+        // KakaoUserManager를 통한 사용자 정보 로드
+        loadKakaoUserInfoWithManager();
     }
 
     /**
-     * 카카오 사용자 정보를 가져와서 UI에 반영
+     * KakaoUserManager를 통해 카카오 사용자 정보 로드
      */
-    private void loadKakaoUserInfo() {
+    private void loadKakaoUserInfoWithManager() {
+        kakaoUserManager.getCurrentUserInfo(new KakaoUserManager.UserInfoCallback() {
+            @Override
+            public void onSuccess(KakaoUserManager.UserInfo userInfo) {
+                runOnUiThread(() -> updateUserInfoFromManager(userInfo));
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Log.e("MainActivity", "KakaoUserManager 정보 로드 실패: " + error);
+                // 실패 시 기존 방식으로 재시도
+                loadKakaoUserInfoDirect();
+            }
+        });
+    }
+
+    /**
+     * KakaoUserManager의 정보로 UI 업데이트
+     */
+    private void updateUserInfoFromManager(KakaoUserManager.UserInfo userInfo) {
+        try {
+            // 닉네임 설정
+            userName.setText(userInfo.nickname);
+
+            // 프로필 이미지 설정
+            if (userInfo.profileImageUrl != null && !userInfo.profileImageUrl.isEmpty()) {
+                Glide.with(this)
+                        .load(userInfo.profileImageUrl)
+                        .apply(new RequestOptions()
+                                .placeholder(R.drawable.default_profile)
+                                .error(R.drawable.default_profile)
+                                .centerCrop())
+                        .into(profileImage);
+            } else {
+                profileImage.setImageResource(R.drawable.default_profile);
+            }
+
+            Log.d("MainActivity", "KakaoUserManager를 통한 사용자 정보 업데이트 완료");
+
+        } catch (Exception e) {
+            Log.e("MainActivity", "사용자 정보 업데이트 중 오류 발생", e);
+            userName.setText("사용자");
+        }
+    }
+
+    /**
+     * 기존 방식으로 카카오 사용자 정보를 가져오기 (백업용)
+     */
+    private void loadKakaoUserInfoDirect() {
         UserApiClient.getInstance().me((user, error) -> {
             if (error != null) {
-                Log.e("KakaoLogin", "사용자 정보 요청 실패", error);
+                Log.e("MainActivity", "사용자 정보 요청 실패", error);
                 // 오류 발생 시 기본값 설정
                 runOnUiThread(() -> {
                     userName.setText("사용자");
-                    userEmail.setText("로그인 정보를 가져올 수 없습니다");
+                    if (userEmail != null) {
+                        userEmail.setText("로그인 정보를 가져올 수 없습니다");
+                    }
                 });
                 return null;
             }
@@ -106,7 +167,9 @@ public class MainActivity extends AppCompatActivity {
             if (user != null) {
                 // UI 업데이트는 메인 스레드에서 실행
                 runOnUiThread(() -> {
-                    updateUserInfo(user);
+                    updateUserInfoDirect(user);
+                    // 성공한 정보를 KakaoUserManager에도 저장
+                    saveUserInfoToManager(user);
                 });
             }
             return null;
@@ -114,9 +177,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 사용자 정보를 UI에 업데이트
+     * 직접 가져온 User 정보로 UI 업데이트 (기존 방식)
      */
-    private void updateUserInfo(User user) {
+    private void updateUserInfoDirect(User user) {
         try {
             // 카카오 계정 정보가 있는지 확인
             if (user.getKakaoAccount() != null) {
@@ -146,23 +209,72 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 // 카카오 계정 정보가 없는 경우
                 userName.setText("카카오 사용자");
-                userEmail.setText("계정 정보 없음");
+                if (userEmail != null) {
+                    userEmail.setText("계정 정보 없음");
+                }
             }
 
-            Log.d("KakaoLogin", "사용자 정보 업데이트 완료");
+            Log.d("MainActivity", "직접 사용자 정보 업데이트 완료");
 
         } catch (Exception e) {
-            Log.e("KakaoLogin", "사용자 정보 업데이트 중 오류 발생", e);
+            Log.e("MainActivity", "사용자 정보 업데이트 중 오류 발생", e);
             userName.setText("사용자");
-            userEmail.setText("정보 로드 실패");
+            if (userEmail != null) {
+                userEmail.setText("정보 로드 실패");
+            }
+        }
+    }
+
+    /**
+     * 직접 가져온 사용자 정보를 KakaoUserManager에 저장
+     */
+    private void saveUserInfoToManager(User user) {
+        try {
+            String userId = String.valueOf(user.getId());
+            String nickname = "카카오 사용자";
+            String profileImageUrl = null;
+
+            if (user.getKakaoAccount() != null && user.getKakaoAccount().getProfile() != null) {
+                nickname = user.getKakaoAccount().getProfile().getNickname() != null
+                        ? user.getKakaoAccount().getProfile().getNickname() : "카카오 사용자";
+                profileImageUrl = user.getKakaoAccount().getProfile().getProfileImageUrl();
+            }
+
+            // SharedPreferences에 직접 저장
+            getSharedPreferences("kakao_user_prefs", MODE_PRIVATE)
+                    .edit()
+                    .putString("user_id", userId)
+                    .putString("nickname", nickname)
+                    .putString("profile_image_url", profileImageUrl)
+                    .putBoolean("is_logged_in", true)
+                    .apply();
+
+            Log.d("MainActivity", "KakaoUserManager에 사용자 정보 저장 완료");
+
+        } catch (Exception e) {
+            Log.e("MainActivity", "KakaoUserManager 저장 중 오류", e);
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        // 메뉴 인플레이트 (마이페이지 메뉴 포함)
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_mypage) {
+            // 마이페이지로 이동
+            Intent intent = new Intent(this, MyPageActivity.class);
+            startActivity(intent);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -175,9 +287,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // 화면이 다시 보여질 때 사용자 정보 새로고침 (필요한 경우)
-        if (profileImage != null && userName != null && userEmail != null) {
-            loadKakaoUserInfo();
+        // 화면이 다시 보여질 때 사용자 정보 새로고침
+        if (profileImage != null && userName != null) {
+            loadKakaoUserInfoWithManager();
         }
     }
 }
