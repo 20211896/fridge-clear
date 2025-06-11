@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- 카테고리 아이콘 -->
+        <ImageView
+            android:id="@+id/img_kamis_category"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/ic_launcher_background"
+            android:scaleType="center"
+            android:textSize="24sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- 상품명 -->
+        <TextView
+            android:id="@+id/txt_kamis_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:text="사과 (후지)"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/btn_kamis_add_cart"
+            app:layout_constraintStart_toEndOf="@+id/img_kamis_category"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- 가격 -->
+        <TextView
+            android:id="@+id/txt_kamis_price"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:text="45,000원"
+            android:textColor="@color/green"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/btn_kamis_add_cart"
+            app:layout_constraintStart_toEndOf="@+id/img_kamis_category"
+            app:layout_constraintTop_toBottomOf="@+id/txt_kamis_name" />
+
+        <!-- 단위 & 등급 -->
+        <TextView
+            android:id="@+id/txt_kamis_unit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:text="10kg"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"
+            app:layout_constraintStart_toEndOf="@+id/img_kamis_category"
+            app:layout_constraintTop_toBottomOf="@+id/txt_kamis_price" />
+
+        <TextView
+            android:id="@+id/txt_kamis_grade"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:text="상품"
+            android:textSize="12sp"
+            android:background="@color/cardview_light_background"
+            android:padding="4dp"
+            android:textColor="@android:color/darker_gray"
+            app:layout_constraintStart_toEndOf="@+id/txt_kamis_unit"
+            app:layout_constraintTop_toBottomOf="@+id/txt_kamis_price" />
+
+        <!-- 카테고리 -->
+        <TextView
+            android:id="@+id/txt_kamis_category"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:text="과일류"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"
+            app:layout_constraintEnd_toStartOf="@+id/btn_kamis_add_cart"
+            app:layout_constraintStart_toEndOf="@+id/img_kamis_category"
+            app:layout_constraintTop_toBottomOf="@+id/txt_kamis_unit" />
+
+        <!-- 장바구니 추가 버튼 -->
+        <Button
+            android:id="@+id/btn_kamis_add_cart"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:text="구매"
+            android:backgroundTint="@color/green"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

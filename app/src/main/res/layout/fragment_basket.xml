@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_basket_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    tools:context=".ui.basket.BasketFragment">
+
+    <!-- 상단 탭 -->
+    <LinearLayout
+        android:id="@+id/tab_layout"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:background="@android:color/white"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tab_bom"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="나"
+            android:textColor="#00C896"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center_vertical"
+            android:background="#E0E0E0" />
+
+        <TextView
+            android:id="@+id/tab_seoul"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="사용자"
+            android:textColor="#666666"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <!-- 탭 인디케이터 -->
+    <LinearLayout
+        android:id="@+id/tab_indicator_layout"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/tab_layout">
+
+        <View
+            android:id="@+id/tab_indicator1"
+            android:layout_width="0dp"
+            android:layout_height="3dp"
+            android:layout_weight="1"
+            android:background="#00C896" />
+
+        <View
+            android:id="@+id/tab_indicator2"
+            android:layout_width="0dp"
+            android:layout_height="3dp"
+            android:layout_weight="1"
+            android:background="#E0E0E0" />
+
+    </LinearLayout>
+
+    <!-- ========== 나의 탭 전체 ========== -->
+    <LinearLayout
+        android:id="@+id/my_tab_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:visibility="visible"
+        app:layout_constraintTop_toBottomOf="@id/tab_indicator_layout"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- 1) 상단: 내 장바구니 리스트 -->
+        <ScrollView
+            android:id="@+id/scrollView_my"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:id="@+id/layout_my_items"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp" />
+        </ScrollView>
+
+        <!-- 2) 하단 탭 버튼 -->
+        <LinearLayout
+            android:id="@+id/my_tab2_layout"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal"
+            android:background="@android:color/white"
+            android:elevation="4dp">
+
+            <TextView
+                android:id="@+id/my_tab2_approval"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="승인대기"
+                android:textColor="#00C896"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center_vertical"
+                android:background="#E0E0E0" />
+
+            <TextView
+                android:id="@+id/my_tab2_shared"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="공동 장바구니"
+                android:textColor="#666666"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <!-- 3) 하단 탭 인디케이터 -->
+        <LinearLayout
+            android:id="@+id/my_tab2_indicator_layout"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:orientation="horizontal"
+            android:background="@android:color/white">
+
+            <View
+                android:id="@+id/my_tab2_indicator1"
+                android:layout_width="0dp"
+                android:layout_height="3dp"
+                android:layout_weight="1"
+                android:background="#00C896" />
+
+            <View
+                android:id="@+id/my_tab2_indicator2"
+                android:layout_width="0dp"
+                android:layout_height="3dp"
+                android:layout_weight="1"
+                android:background="#E0E0E0" />
+        </LinearLayout>
+
+        <!-- 4) 하단 절반: 승인대기 + 구매 -->
+        <LinearLayout
+            android:id="@+id/bottom_section_my"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@android:color/white"
+            android:elevation="4dp">
+
+            <!-- 4-1) 승인대기/공동장바구니 리스트 -->
+            <ScrollView
+                android:id="@+id/scrollView_pending"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:padding="8dp">
+
+                <LinearLayout
+                    android:id="@+id/layout_pending_items"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="4dp" />
+            </ScrollView>
+
+            <!-- 4-2) 총합 및 구매 버튼 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/my_total_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="총 1건"
+                        android:textColor="#666666"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/my_total_price"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="1,200,000"
+                        android:textColor="@android:color/black"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="원"
+                        android:textColor="@android:color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_purchase"
+                    android:layout_width="100dp"
+                    android:layout_height="45dp"
+                    android:backgroundTint="@color/green"
+                    android:text="구매하기"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ========== 사용자 탭 전체 ========== -->
+    <LinearLayout
+        android:id="@+id/user_tab_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/tab_indicator_layout"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- 1) 상단: 사용자 장바구니 리스트 (빈 공간) -->
+        <ScrollView
+            android:id="@+id/scrollView_user"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:id="@+id/layout_user_items"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="사용자 장바구니"
+                    android:textSize="18sp"
+                    android:textColor="#666666"
+                    android:layout_marginTop="50dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="준비중입니다"
+                    android:textSize="14sp"
+                    android:textColor="#999999"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- 2) 하단 탭 버튼 (나와 동일) -->
+        <LinearLayout
+            android:id="@+id/user_tab2_layout"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal"
+            android:background="@android:color/white"
+            android:elevation="4dp">
+
+            <TextView
+                android:id="@+id/user_tab2_approval"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="승인대기"
+                android:textColor="#00C896"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center_vertical"
+                android:background="#E0E0E0" />
+
+            <TextView
+                android:id="@+id/user_tab2_shared"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="공동 장바구니"
+                android:textColor="#666666"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <!-- 3) 하단 탭 인디케이터 (나와 동일) -->
+        <LinearLayout
+            android:id="@+id/user_tab2_indicator_layout"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:orientation="horizontal"
+            android:background="@android:color/white">
+
+            <View
+                android:id="@+id/user_tab2_indicator1"
+                android:layout_width="0dp"
+                android:layout_height="3dp"
+                android:layout_weight="1"
+                android:background="#00C896" />
+
+            <View
+                android:id="@+id/user_tab2_indicator2"
+                android:layout_width="0dp"
+                android:layout_height="3dp"
+                android:layout_weight="1"
+                android:background="#E0E0E0" />
+        </LinearLayout>
+
+        <!-- 4) 하단 절반: 공유되는 승인대기/공동장바구니 영역 -->
+        <LinearLayout
+            android:id="@+id/bottom_section_user"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@android:color/white"
+            android:elevation="4dp"
+            android:visibility="gone">
+
+            <!-- 4-1) 승인대기/공동장바구니 리스트 (복사본) -->
+            <ScrollView
+                android:id="@+id/scrollView_pending_user"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:padding="8dp">
+
+                <LinearLayout
+                    android:id="@+id/layout_pending_items_user"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="4dp" />
+            </ScrollView>
+
+            <!-- 4-2) 총합 및 구매 버튼 (복사본) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/user_total_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="총 1건"
+                        android:textColor="#666666"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/user_total_price"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="1,200,000"
+                        android:textColor="@android:color/black"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="원"
+                        android:textColor="@android:color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_purchase_user"
+                    android:layout_width="100dp"
+                    android:layout_height="45dp"
+                    android:backgroundTint="@color/green"
+                    android:text="구매하기"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

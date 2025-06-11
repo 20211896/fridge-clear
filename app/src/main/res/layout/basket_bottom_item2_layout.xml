@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingHorizontal="4dp"
+    android:paddingVertical="4dp">
+
+    <CheckBox
+        android:id="@+id/checkbox_item"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="0dp"
+        android:layout_marginStart="-8dp"
+        android:layout_marginEnd="-8dp" />
+
+    <TextView
+        android:id="@+id/edit_product_name"
+        android:layout_width="0dp"
+        android:layout_height="36dp"
+        android:layout_weight="1"
+        android:layout_marginEnd="2dp"
+        android:background="@drawable/edit_text_border"
+        android:paddingHorizontal="6dp"
+        android:gravity="center_vertical"
+        android:textSize="12sp"
+        android:maxLines="1" />
+
+    <TextView
+        android:id="@+id/edit_quantity"
+        android:layout_width="45dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="2dp"
+        android:background="@drawable/edit_text_border"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:maxLines="1" />
+
+    <TextView
+        android:id="@+id/edit_price"
+        android:layout_width="65dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="2dp"
+        android:background="@drawable/edit_text_border"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:maxLines="1" />
+
+    <Button
+        android:id="@+id/btn_my_reject"
+        android:layout_width="50dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="4dp"
+        android:backgroundTint="@color/red"
+        android:text="취소"
+        android:textColor="@android:color/white"
+        android:textSize="11sp"
+        android:gravity="center"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:insetTop="3dp"
+        android:insetBottom="3dp"
+        android:padding="0dp" />
+
+</LinearLayout>

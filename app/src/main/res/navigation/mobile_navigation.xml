@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <!-- 기존 드로어 메뉴 Fragment들 -->
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.t3.ui.home.HomeFragment"
+        android:label="@string/menu_fridge"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/nav_gallery"
+        android:name="com.example.t3.ui.gallery.GalleryFragment"
+        android:label="@string/menu_gallery"
+        tools:layout="@layout/fragment_gallery" />
+
+    <fragment
+        android:id="@+id/nav_slideshow"
+        android:name="com.example.t3.ui.slideshow.SlideshowFragment"
+        android:label="@string/menu_slideshow"
+        tools:layout="@layout/fragment_slideshow" />
+
+    <!-- 바텀 네비게이션 Fragment들
+          홈을 제외한 나머지 프래그먼트는 자바파일 생성 필요-->
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="com.example.t3.ui.home.HomeFragment"
+        android:label="@string/menu_fridge"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/navigation_dashboard"
+        android:name="com.example.t3.ui.market.MarketFragment"
+        android:label="마켓"
+        tools:layout="@layout/fragment_market" />
+
+    <fragment
+        android:id="@+id/navigation_notifications"
+        android:name="com.example.t3.ui.basket.BasketFragment"
+        android:label="장바구니"
+        tools:layout="@layout/fragment_basket" />
+</navigation>
