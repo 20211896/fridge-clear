@@ -53,15 +53,6 @@ public class MainActivity extends AppCompatActivity {
         // 카카오 사용자 매니저 초기화
         kakaoUserManager = KakaoUserManager.getInstance(this);
 
-        // FAB 클릭 리스너
-        binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null)
-                        .setAnchorView(R.id.fab).show();
-            }
-        });
 
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;

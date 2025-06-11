@@ -9,7 +9,9 @@
     <color name="white">#FFFFFFFF</color>
     <color name="green">#38DB83</color>
     <color name="red">#E93939</color>
+    <color name="orange">#FF9500</color>
     <color name="gray_666">#666666</color>
+    <color name="gray_999">#999999</color>
     <color name="gray_e0">#E0E0E0</color>
     <color name="light_gray">#F5F5F5</color>
     <color name="blue">#007AFF</color>

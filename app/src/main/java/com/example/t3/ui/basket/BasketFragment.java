@@ -24,7 +24,9 @@ import com.example.t3.ui.pending.PendingItemView;
 import com.example.t3.utils.CustomToast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BasketFragment extends Fragment {
 
@@ -42,6 +44,10 @@ public class BasketFragment extends Fragment {
     private TextView myTotalCount, myTotalPrice;
     private TextView userTotalCount, userTotalPrice;
 
+    // 구매 버튼들
+    private Button btnPurchase;
+    private Button btnPurchaseUser;
+
     // 탭 관련 뷰들
     private TextView tabBom, tabSeoul;
     private View tabIndicator1, tabIndicator2;
@@ -57,6 +63,9 @@ public class BasketFragment extends Fragment {
     // 현재 선택된 탭 상태
     private boolean isMyTab = true; // true: 나, false: 사용자
     private boolean isApprovalTab = true; // true: 승인대기, false: 공동장바구니
+
+    // 공동장바구니 아이템의 체크 상태를 저장하는 Map
+    private Map<String, Boolean> sharedItemsCheckState = new HashMap<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -75,6 +84,9 @@ public class BasketFragment extends Fragment {
 
         // 탭 클릭 리스너 설정
         setupTabListeners();
+
+        // 구매 버튼 클릭 리스너 설정
+        setupPurchaseButtonListeners();
 
         // LiveData 관찰
         basketViewModel.getMyBasketItems()
@@ -101,6 +113,10 @@ public class BasketFragment extends Fragment {
         layoutMyItems = root.findViewById(R.id.layout_my_items);
         layoutPendingItems = root.findViewById(R.id.layout_pending_items);
         layoutPendingItemsUser = root.findViewById(R.id.layout_pending_items_user);
+
+        // 구매 버튼들
+        btnPurchase = root.findViewById(R.id.btn_purchase);
+        btnPurchaseUser = root.findViewById(R.id.btn_purchase_user);
 
         // 상단 탭
         tabBom = root.findViewById(R.id.tab_bom);
@@ -151,6 +167,128 @@ public class BasketFragment extends Fragment {
         userTab2Shared.setOnClickListener(v -> switchToSharedTab());
     }
 
+    private void setupPurchaseButtonListeners() {
+        // 나의 구매하기 버튼
+        btnPurchase.setOnClickListener(v -> {
+            if (hasPurchasableItems()) {
+                showPurchaseBottomSheet();
+            } else {
+                CustomToast.show(getContext(), "구매할 상품을 선택해주세요");
+            }
+        });
+
+        // 사용자 구매하기 버튼
+        btnPurchaseUser.setOnClickListener(v -> {
+            if (hasPurchasableItems()) {
+                showPurchaseBottomSheet();
+            } else {
+                CustomToast.show(getContext(), "구매할 상품을 선택해주세요");
+            }
+        });
+    }
+
+    private void showPurchaseBottomSheet() {
+        PurchaseBottomSheetDialog dialog = new PurchaseBottomSheetDialog();
+
+        // 공동장바구니 체크 상태를 다이얼로그에 전달
+        dialog.setSharedItemCheckCallback(new PurchaseBottomSheetDialog.SharedItemCheckCallback() {
+            @Override
+            public boolean isSharedItemChecked(PendingItem item) {
+                return BasketFragment.this.isSharedItemChecked(item);
+            }
+        });
+
+        dialog.show(getChildFragmentManager(), "PurchaseBottomSheet");
+    }
+
+    /**
+     * 공동장바구니 아이템의 체크 상태 저장
+     */
+    private void setSharedItemChecked(String itemId, boolean isChecked) {
+        sharedItemsCheckState.put(itemId, isChecked);
+    }
+
+    /**
+     * 공동장바구니 아이템의 체크 상태 확인 (수정된 버전)
+     */
+    private boolean isSharedItemChecked(PendingItem item) {
+        // 승인된 아이템(공동장바구니)만 체크 상태 확인
+        if (!item.isApproved()) {
+            return false; // 승인되지 않은 아이템은 구매 대상이 아님
+        }
+
+        // Map에서 체크 상태 확인, 기본값은 true (처음에는 체크됨)
+        return sharedItemsCheckState.getOrDefault(item.getId(), true);
+    }
+
+    /**
+     * 특정 아이템의 체크 상태 가져오기 (아이템 ID로)
+     */
+    private boolean isSharedItemCheckedById(String itemId) {
+        return sharedItemsCheckState.getOrDefault(itemId, true);
+    }
+
+    /**
+     * 구매 가능한 상품이 있는지 확인
+     */
+    private boolean hasPurchasableItems() {
+        // 내 장바구니에서 체크된 아이템 확인
+        List<BasketItem> basketItems = basketViewModel.getMyBasketItems().getValue();
+        boolean hasMyItems = false;
+        if (basketItems != null) {
+            for (BasketItem item : basketItems) {
+                if (item.isChecked()) {
+                    hasMyItems = true;
+                    break;
+                }
+            }
+        }
+
+        // 공동장바구니에서 체크된 승인 아이템 확인
+        List<PendingItem> pendingItems = pendingViewModel.getPendingItems().getValue();
+        boolean hasSharedItems = false;
+        if (pendingItems != null) {
+            for (PendingItem item : pendingItems) {
+                if (item.isApproved() && isSharedItemChecked(item)) {
+                    hasSharedItems = true;
+                    break;
+                }
+            }
+        }
+
+        return hasMyItems || hasSharedItems;
+    }
+
+    /**
+     * 구매 버튼 상태 업데이트 (수정된 버전)
+     */
+    private void updatePurchaseButtonState() {
+        boolean canPurchase = hasPurchasableItems();
+
+        // 버튼 활성화/비활성화
+        btnPurchase.setEnabled(canPurchase);
+        btnPurchaseUser.setEnabled(canPurchase);
+
+        // 버튼 색상 및 텍스트 변경
+        if (canPurchase) {
+            btnPurchase.setBackgroundTintList(getResources().getColorStateList(R.color.green, null));
+            btnPurchase.setText("구매하기");
+            btnPurchase.setTextColor(getResources().getColor(android.R.color.white, null));
+
+            btnPurchaseUser.setBackgroundTintList(getResources().getColorStateList(R.color.green, null));
+            btnPurchaseUser.setText("구매하기");
+            btnPurchaseUser.setTextColor(getResources().getColor(android.R.color.white, null));
+        } else {
+            btnPurchase.setBackgroundTintList(getResources().getColorStateList(android.R.color.darker_gray, null));
+            btnPurchase.setText("구매하기");
+            btnPurchase.setTextColor(getResources().getColor(android.R.color.white, null));
+
+            btnPurchaseUser.setBackgroundTintList(getResources().getColorStateList(android.R.color.darker_gray, null));
+            btnPurchaseUser.setText("구매하기");
+            btnPurchaseUser.setTextColor(getResources().getColor(android.R.color.white, null));
+        }
+    }
+
     private void switchToMyTab() {
         if (!isMyTab) {
             isMyTab = true;
@@ -158,7 +296,6 @@ public class BasketFragment extends Fragment {
             myTabContainer.setVisibility(View.VISIBLE);
             userTabContainer.setVisibility(View.GONE);
             moveBottomSectionToContainer(bottomSectionMy);
-            // 토스트 제거
         }
     }
 
@@ -186,7 +323,7 @@ public class BasketFragment extends Fragment {
         if (pendingItems != null) {
             for (PendingItem item : pendingItems) {
                 if (item.isApproved()) {
-                    // 공동장바구니 아이템은 체크박스 상태를 확인해야 함
+                    // 개선된 체크 상태 확인
                     if (isSharedItemChecked(item)) {
                         sharedItemCount++;
                         sharedTotalAmount += item.getTotalPrice() / 2; // 절반 가격
@@ -207,28 +344,9 @@ public class BasketFragment extends Fragment {
         myTotalPrice.setText(priceText);
         userTotalCount.setText(countText);
         userTotalPrice.setText(priceText);
-    }
 
-    /**
-     * 공동장바구니 아이템의 체크 상태 확인
-     */
-    private boolean isSharedItemChecked(PendingItem item) {
-        // 현재 표시되고 있는 공동장바구니 레이아웃에서 해당 아이템의 체크박스 상태 확인
-        LinearLayout activeLayout = isMyTab ? layoutPendingItems : layoutPendingItemsUser;
-
-        if (!isApprovalTab && activeLayout != null) { // 공동장바구니 탭인 경우에만
-            for (int i = 0; i < activeLayout.getChildCount(); i++) {
-                View childView = activeLayout.getChildAt(i);
-                CheckBox checkbox = childView.findViewById(R.id.checkbox_item);
-                TextView productName = childView.findViewById(R.id.edit_product_name);
-
-                if (checkbox != null && productName != null &&
-                        productName.getText().toString().equals(item.getProductName())) {
-                    return checkbox.isChecked();
-                }
-            }
-        }
-        return true; // 기본값은 체크됨
+        // 구매 버튼 상태 업데이트
+        updatePurchaseButtonState();
     }
 
     private void switchToUserTab() {
@@ -238,7 +356,6 @@ public class BasketFragment extends Fragment {
             myTabContainer.setVisibility(View.GONE);
             userTabContainer.setVisibility(View.VISIBLE);
             moveBottomSectionToContainer(bottomSectionUser);
-            // 토스트 제거
         }
     }
 
@@ -248,7 +365,6 @@ public class BasketFragment extends Fragment {
             updateBottomTabUI();
             updateBottomContent();
             updateTotalPrices(); // 탭 전환 시 가격 업데이트
-            // 토스트 제거
         }
     }
 
@@ -258,7 +374,6 @@ public class BasketFragment extends Fragment {
             updateBottomTabUI();
             updateBottomContent();
             updateTotalPrices(); // 탭 전환 시 가격 업데이트
-            // 토스트 제거
         }
     }
 
@@ -450,18 +565,21 @@ public class BasketFragment extends Fragment {
                 }
             });
 
-            // 체크박스 상태 변경 시 가격 업데이트
+            // 체크박스 상태 변경 시 가격 및 버튼 상태 업데이트
             View checkboxView = itemView.findViewById(R.id.checkbox_item);
             if (checkboxView instanceof CheckBox) {
                 CheckBox checkbox = (CheckBox) checkboxView;
                 checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     item.setChecked(isChecked);
-                    updateTotalPrices(); // 가격 즉시 업데이트
+                    updateTotalPrices(); // 이미 버튼 상태 업데이트 포함됨
                 });
             }
 
             layoutMyItems.addView(itemView);
         }
+
+        // 아이템 목록 변경 시에도 버튼 상태 업데이트
+        updatePurchaseButtonState();
     }
 
     private void populatePendingItems(List<PendingItem> items) {
@@ -527,7 +645,7 @@ public class BasketFragment extends Fragment {
     }
 
     /**
-     * 공동장바구니 아이템들을 basket_bottom_item2 레이아웃으로 표시
+     * 공동장바구니 아이템들을 basket_bottom_item2 레이아웃으로 표시 (개선된 버전)
      */
     private void populateSharedItemsInLayout(List<PendingItem> approvedItems, LinearLayout targetLayout) {
         for (PendingItem item : approvedItems) {
@@ -542,21 +660,41 @@ public class BasketFragment extends Fragment {
             Button btnMyReject = itemView.findViewById(R.id.btn_my_reject);
 
             // 데이터 바인딩
-            checkboxItem.setChecked(true);
+            boolean isChecked = isSharedItemCheckedById(item.getId());
+            checkboxItem.setChecked(isChecked);
             editProductName.setText(item.getProductName());
             editQuantity.setText(String.valueOf(item.getQuantity()));
             editPrice.setText(item.getFormattedPrice());
 
-            // 체크박스 상태 변경 시 가격 업데이트
-            checkboxItem.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                updateTotalPrices(); // 가격 즉시 업데이트
+            // 체크박스 상태 변경 시 처리
+            checkboxItem.setOnCheckedChangeListener((buttonView, checked) -> {
+                // 체크 상태를 Map에 저장
+                setSharedItemChecked(item.getId(), checked);
+                // 가격 및 버튼 상태 즉시 업데이트
+                updateTotalPrices();
+
+                // 시각적 피드백 (체크 해제 시 아이템을 흐리게)
+                float alpha = checked ? 1.0f : 0.5f;
+                editProductName.setAlpha(alpha);
+                editQuantity.setAlpha(alpha);
+                editPrice.setAlpha(alpha);
             });
+
+            // 초기 시각적 상태 설정
+            float alpha = isChecked ? 1.0f : 0.5f;
+            editProductName.setAlpha(alpha);
+            editQuantity.setAlpha(alpha);
+            editPrice.setAlpha(alpha);
 
             // 취소 버튼 리스너
             btnMyReject.setOnClickListener(v -> {
                 // 공동장바구니에서 승인대기로 상태 변경
                 item.setStatus(PendingItem.Status.PENDING);
                 pendingViewModel.updatePendingItem(item);
+
+                // 체크 상태도 초기화
+                sharedItemsCheckState.remove(item.getId());
+
                 CustomToast.show(getContext(),
                         item.getProductName() + " 승인대기 이동");
             });
@@ -584,5 +722,7 @@ public class BasketFragment extends Fragment {
         } else {
             moveBottomSectionToContainer(bottomSectionUser);
         }
+
+        // 체크 상태는 Map에 저장되어 있으므로 별도 초기화 불필요
     }
 }
