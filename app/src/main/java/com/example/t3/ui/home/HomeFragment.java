@@ -138,8 +138,11 @@ public class HomeFragment extends Fragment {
                 .show();
     }
 
-    // 5. 삭제 + 재배치
+    // 5. 삭제 + 재배치 (애니메이션 정리 추가)
     private void deleteButton(Button b, int delNum) {
+        // 삭제할 버튼의 애니메이션 정리
+        b.clearAnimation();
+
         deleteCellData(delNum);
         gridLayout.removeView(b);
 
@@ -172,6 +175,9 @@ public class HomeFragment extends Fragment {
             View c = gridLayout.getChildAt(i);
             if (c instanceof Button) {
                 Button nb = (Button) c;
+                // 기존 애니메이션 정리
+                nb.clearAnimation();
+
                 int orig = (Integer) nb.getTag();
                 nb.setTag(newNum);
 
