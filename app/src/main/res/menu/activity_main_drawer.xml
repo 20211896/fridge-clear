@@ -9,12 +9,14 @@
             android:icon="@drawable/ic_fridge"
             android:title="@string/menu_fridge" />
         <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="@string/menu_gallery" />
+            android:id="@+id/nav_order_history"
+            android:icon="@drawable/ic_menu_order_history"
+            android:title="@string/menu_order_history" />
+        <!-- 슬라이드쇼 메뉴 숨김 (구현 전까지)
         <item
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/menu_slideshow" />
+        -->
     </group>
 </menu>

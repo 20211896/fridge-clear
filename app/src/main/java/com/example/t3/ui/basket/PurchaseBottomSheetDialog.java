@@ -15,10 +15,14 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
+import android.util.Log;
 
+import com.example.t3.MainActivity;
 import com.example.t3.R;
 import com.example.t3.model.BasketItem;
 import com.example.t3.model.PendingItem;
+import com.example.t3.ui.orderhistory.OrderHistoryViewModel;
 import com.example.t3.ui.pending.PendingApprovalViewModel;
 import com.example.t3.utils.CustomToast;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -373,6 +377,9 @@ public class PurchaseBottomSheetDialog extends BottomSheetDialogFragment {
     private void completePurchase() {
         isPurchaseComplete = true;
 
+        // 먼저 장바구니 업데이트 (데이터 정합성을 위해)
+        processPurchaseCompletion();
+
         // 버튼을 끝까지 이동
         ObjectAnimator slideAnimator = ObjectAnimator.ofFloat(slideButton, "x", slideButton.getX(), slideContainerWidth);
         slideAnimator.setDuration(200);
@@ -394,14 +401,55 @@ public class PurchaseBottomSheetDialog extends BottomSheetDialogFragment {
         paymentCompleteText.setVisibility(View.VISIBLE);
         showCompleteAnimator.start();
 
-        // 1.5초 후 다이얼로그 닫고 장바구니 업데이트
+        // 1.5초 후 다이얼로그 닫고 주문내역 페이지로 이동
         slidePaymentContainer.postDelayed(() -> {
-            processPurchaseCompletion();
             dismiss();
+            navigateToOrderHistory();
         }, 1500);
     }
 
     private void processPurchaseCompletion() {
+        // 주문 상세 내역 생성
+        List<String> orderDetails = new ArrayList<>();
+
+        // 내 장바구니 아이템들 주문 내역에 추가
+        for (BasketItem item : myItems) {
+            orderDetails.add(item.getProductName() + " " + item.getQuantity() + "개 - " +
+                    String.format("%,d원", item.getTotalPrice()));
+        }
+
+        // 공동구매 아이템들 주문 내역에 추가
+        for (PendingItem item : sharedItems) {
+            orderDetails.add(item.getProductName() + " " + item.getQuantity() + "개 (공동구매 50% 할인) - " +
+                    String.format("%,d원", item.getTotalPrice() / 2));
+        }
+
+        // 주문번호 생성 (현재 시간 기반)
+        String orderId = "ORD" + System.currentTimeMillis() % 100000;
+        int totalAmount = myTotal + sharedTotal;
+
+        // 주문 상태 결정: 공동구매가 포함되어 있으면 "승인중", 아니면 "주문 완료"
+        String orderStatus;
+        if (sharedItems.isEmpty()) {
+            // 공동구매 아이템이 없으면 일반 주문
+            orderStatus = "주문 완료";
+            Log.d("PurchaseDialog", "일반 주문 - 상태: 주문 완료");
+        } else {
+            // 공동구매 아이템이 있으면 승인 대기
+            orderStatus = "승인중";
+            Log.d("PurchaseDialog", "공동구매 포함 주문 - 상태: 승인중");
+        }
+
+        // OrderHistoryViewModel에 새 주문 추가
+        try {
+            OrderHistoryViewModel orderViewModel = new ViewModelProvider(requireActivity()).get(OrderHistoryViewModel.class);
+            orderViewModel.addOrder(orderId, totalAmount, orderDetails, orderStatus);
+
+            Log.d("PurchaseDialog", "주문 추가 완료 - 상태: " + orderStatus + ", 금액: " + totalAmount);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         // 구매한 내 장바구니 아이템들 제거
         for (BasketItem item : myItems) {
             basketViewModel.removeItem(item);
@@ -412,7 +460,34 @@ public class PurchaseBottomSheetDialog extends BottomSheetDialogFragment {
             pendingViewModel.removePendingItem(item);
         }
 
-        CustomToast.show(requireContext(), "입금이 완료되었습니다!");
+        // 토스트 메시지도 상태에 따라 다르게 표시
+        if (sharedItems.isEmpty()) {
+            CustomToast.show(requireContext(), "주문이 완료되었습니다!");
+        } else {
+            CustomToast.show(requireContext(), "주문이 접수되었습니다. 승인을 기다려주세요.");
+        }
+    }
+
+    // 주문내역 페이지로 이동
+    private void navigateToOrderHistory() {
+        try {
+            // 먼저 MainActivity의 메서드를 통해 이동 시도
+            if (requireActivity() instanceof MainActivity) {
+                ((MainActivity) requireActivity()).navigateToOrderHistory();
+                return;
+            }
+        } catch (Exception e) {
+            Log.e("PurchaseDialog", "MainActivity 네비게이션 실패: " + e.getMessage());
+        }
+
+        try {
+            // 대안: Navigation Component 직접 사용
+            Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_content_main)
+                    .navigate(R.id.nav_order_history);
+        } catch (Exception e) {
+            Log.e("PurchaseDialog", "Navigation Component 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     @Override

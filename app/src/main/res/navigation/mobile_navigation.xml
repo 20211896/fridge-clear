@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/nav_home">
+    app:startDestination="@+id/navigation_home">
 
     <!-- 기존 드로어 메뉴 Fragment들 -->
     <fragment
@@ -13,10 +13,10 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="com.example.t3.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        android:id="@+id/nav_order_history"
+        android:name="com.example.t3.ui.orderhistory.OrderHistoryFragment"
+        android:label="@string/menu_order_history"
+        tools:layout="@layout/fragment_order_history" />
 
     <fragment
         android:id="@+id/nav_slideshow"

@@ -16,6 +16,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.kakao.sdk.user.UserApiClient;
 import com.kakao.sdk.user.model.User;
 
+import androidx.core.view.GravityCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -53,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
         // 카카오 사용자 매니저 초기화
         kakaoUserManager = KakaoUserManager.getInstance(this);
 
-
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;
         BottomNavigationView bottomNavigationView = binding.appBarMain.bottomNavView;
@@ -61,17 +61,166 @@ public class MainActivity extends AppCompatActivity {
         // 네비게이션 헤더 뷰 설정 및 카카오 사용자 정보 초기화
         setupNavigationHeader(navigationView);
 
+        // Navigation ID 디버깅
+        debugNavigationIds();
+
         // 드로어와 바텀 네비게이션의 모든 메뉴 ID를 top level destinations로 설정
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow,
+                R.id.nav_home, R.id.nav_order_history, // R.id.nav_slideshow 제거
                 R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
                 .setOpenableLayout(drawer)
                 .build();
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
+
+        // 바텀 네비게이션만 자동으로 연결 - Navigation Component가 완전히 관리
         NavigationUI.setupWithNavController(bottomNavigationView, navController);
+
+        // 드로어 메뉴는 완전히 수동으로 처리 (바텀 네비게이션과 분리)
+        setupDrawerMenuListener(navigationView, navController);
+
+        // NavController 리스너 (표시/숨기기 및 드로어 상태만)
+        setupNavControllerListener(navController, bottomNavigationView, navigationView);
+    }
+
+    /**
+     * Navigation ID 디버깅
+     */
+    private void debugNavigationIds() {
+        Log.d("MainActivity", "=== Navigation ID 디버깅 ===");
+        Log.d("MainActivity", "R.id.navigation_home: " + R.id.navigation_home);
+        Log.d("MainActivity", "R.id.navigation_dashboard: " + R.id.navigation_dashboard);
+        Log.d("MainActivity", "R.id.navigation_notifications: " + R.id.navigation_notifications);
+        Log.d("MainActivity", "R.id.nav_home: " + R.id.nav_home);
+        Log.d("MainActivity", "R.id.nav_order_history: " + R.id.nav_order_history);
+        // Log.d("MainActivity", "R.id.nav_slideshow: " + R.id.nav_slideshow); // 슬라이드쇼 제거
+        Log.d("MainActivity", "================================");
+    }
+
+    /**
+     * Navigation Drawer 메뉴 클릭 리스너 설정 (슬라이드쇼 제거)
+     */
+    private void setupDrawerMenuListener(NavigationView navigationView, NavController navController) {
+        // 드로어 메뉴를 완전히 수동으로 처리
+        navigationView.setNavigationItemSelectedListener(null); // 기존 리스너 제거
+
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            Log.d("MainActivity", "드로어 메뉴 클릭: " + id);
+
+            try {
+                if (id == R.id.nav_home) {
+                    // 냉장고 페이지 - 바텀 네비게이션의 홈으로 이동
+                    Log.d("MainActivity", "냉장고 선택 - 홈으로 이동");
+                    navController.navigate(R.id.navigation_home);
+                } else if (id == R.id.nav_order_history) {
+                    // 주문내역 페이지로 직접 이동
+                    Log.d("MainActivity", "주문내역 선택");
+                    navController.navigate(R.id.nav_order_history);
+                }
+                // 슬라이드쇼 관련 코드 제거
+                else {
+                    Log.d("MainActivity", "알 수 없는 드로어 메뉴: " + id);
+                    return false;
+                }
+            } catch (Exception e) {
+                Log.e("MainActivity", "드로어 네비게이션 실패: " + e.getMessage());
+                return false;
+            }
+
+            // Drawer 닫기
+            DrawerLayout drawer = binding.drawerLayout;
+            drawer.closeDrawer(GravityCompat.START);
+            return true;
+        });
+    }
+
+    /**
+     * NavController 리스너 설정 (슬라이드쇼 제거)
+     */
+    private void setupNavControllerListener(NavController navController, BottomNavigationView bottomNavigationView, NavigationView navigationView) {
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            int destinationId = destination.getId();
+
+            // 현재 Fragment 로그
+            String fragmentName = "알 수 없음";
+            if (destinationId == R.id.navigation_home) {
+                fragmentName = "홈";
+            } else if (destinationId == R.id.navigation_dashboard) {
+                fragmentName = "마켓";
+            } else if (destinationId == R.id.navigation_notifications) {
+                fragmentName = "장바구니";
+            } else if (destinationId == R.id.nav_order_history) {
+                fragmentName = "주문내역";
+            }
+            // 슬라이드쇼 관련 코드 제거
+
+            Log.d("MainActivity", "현재 Fragment: " + fragmentName + " (ID: " + destinationId + ")");
+
+            // Bottom Navigation 표시/숨기기만 처리
+            if (destinationId == R.id.navigation_home ||
+                    destinationId == R.id.navigation_dashboard ||
+                    destinationId == R.id.navigation_notifications) {
+                bottomNavigationView.setVisibility(View.VISIBLE);
+                Log.d("MainActivity", "바텀 네비게이션 표시");
+            } else {
+                bottomNavigationView.setVisibility(View.GONE);
+                Log.d("MainActivity", "바텀 네비게이션 숨김");
+            }
+
+            // 드로어 상태 업데이트 (간단하게)
+            if (destinationId == R.id.nav_order_history) {
+                navigationView.setCheckedItem(R.id.nav_order_history);
+            } else if (destinationId == R.id.navigation_home || destinationId == R.id.nav_home) {
+                navigationView.setCheckedItem(R.id.nav_home);
+            } else {
+                // 마켓, 장바구니일 때는 드로어 선택 해제
+                navigationView.setCheckedItem(Menu.NONE);
+            }
+            // 슬라이드쇼 관련 코드 제거
+        });
+    }
+
+    /**
+     * 구매 완료 후 주문내역 페이지로 이동하는 메서드
+     */
+    public void navigateToOrderHistory() {
+        try {
+            Log.d("MainActivity", "구매 완료 - 주문내역으로 이동 시작");
+            NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+            navController.navigate(R.id.nav_order_history);
+
+            // 드로우어가 열려있다면 닫기
+            DrawerLayout drawer = binding.drawerLayout;
+            if (drawer != null && drawer.isDrawerOpen(GravityCompat.START)) {
+                drawer.closeDrawer(GravityCompat.START);
+            }
+
+            Log.d("MainActivity", "주문내역 페이지로 이동 완료");
+        } catch (Exception e) {
+            Log.e("MainActivity", "주문내역 페이지 이동 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 네비게이션 상태 강제 초기화 (문제 발생 시 사용)
+     */
+    public void resetNavigationState() {
+        try {
+            Log.d("MainActivity", "네비게이션 상태 강제 초기화 시작");
+
+            NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+
+            // 홈으로 강제 이동
+            navController.navigate(R.id.navigation_home);
+
+            Log.d("MainActivity", "네비게이션 상태 초기화 완료");
+
+        } catch (Exception e) {
+            Log.e("MainActivity", "네비게이션 초기화 실패: " + e.getMessage());
+        }
     }
 
     /**
@@ -282,5 +431,8 @@ public class MainActivity extends AppCompatActivity {
         if (profileImage != null && userName != null) {
             loadKakaoUserInfoWithManager();
         }
+
+        // 네비게이션 문제가 지속되면 이 주석을 해제하세요
+        // resetNavigationState();
     }
 }
